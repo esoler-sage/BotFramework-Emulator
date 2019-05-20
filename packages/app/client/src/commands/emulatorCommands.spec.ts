@@ -31,7 +31,6 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 import { newNotification, SharedConstants } from '@bfemulator/app-shared';
-import { CommandRegistryImpl } from '@bfemulator/sdk-shared';
 import { combineReducers, createStore } from 'redux';
 
 import { clientAwareSettingsChanged } from '../data/action/clientAwareSettingsActions';
@@ -41,9 +40,8 @@ import { chat } from '../data/reducer/chat';
 import { clientAwareSettings } from '../data/reducer/clientAwareSettingsReducer';
 import { editor } from '../data/reducer/editor';
 import { RootState } from '../data/store';
-import { CommandServiceImpl } from '../platform/commands/commandServiceImpl';
-
-import { registerCommands } from './emulatorCommands';
+import { CommandRegistry, CommandServiceImpl, CommandServiceInstance } from '@bfemulator/sdk-shared';
+import { EmulatorCommands } from './emulatorCommands';
 
 const mockEndpoint = {
   endpoint: 'https://localhost:8080/api/messages',
@@ -55,13 +53,41 @@ jest.mock('../data/store', () => ({
     return mockStore;
   },
 }));
-jest.mock('../ui/dialogs/', () => ({}));
+
+jest.mock('electron', () => ({
+  ipcMain: new Proxy(
+    {},
+    {
+      get(): any {
+        return () => ({});
+      },
+      has() {
+        return true;
+      },
+    }
+  ),
+  ipcRenderer: new Proxy(
+    {},
+    {
+      get(): any {
+        return () => ({});
+      },
+      has() {
+        return true;
+      },
+    }
+  ),
+}));
 
 describe('The emulator commands', () => {
-  let registry: CommandRegistryImpl;
+  let commandService: CommandServiceImpl;
+  let registry: CommandRegistry;
   beforeAll(() => {
-    registry = new CommandRegistryImpl();
-    registerCommands(registry);
+    new EmulatorCommands();
+    const decorator = CommandServiceInstance();
+    const descriptor = decorator({ descriptor: {} }, 'none') as any;
+    commandService = descriptor.descriptor.get();
+    registry = commandService.registry;
   });
 
   beforeEach(() => {
@@ -113,8 +139,8 @@ describe('The emulator commands', () => {
 
   it('Should prompt to open a transcript', async () => {
     const handler = registry.getCommand(SharedConstants.Commands.Emulator.PromptToOpenTranscript);
-    const remoteCallSpy = jest.spyOn(CommandServiceImpl, 'remoteCall').mockResolvedValue('transcript.transcript');
-    const callSpy = jest.spyOn(CommandServiceImpl, 'call').mockResolvedValue(null);
+    const remoteCallSpy = jest.spyOn(commandService, 'remoteCall').mockResolvedValue('transcript.transcript');
+    const callSpy = jest.spyOn(commandService, 'call').mockResolvedValue(null);
 
     await handler();
 
@@ -133,8 +159,8 @@ describe('The emulator commands', () => {
 
   it('should dispatch a notification when opening a transcript fails', async () => {
     const handler = registry.getCommand(SharedConstants.Commands.Emulator.PromptToOpenTranscript);
-    const remoteCallSpy = jest.spyOn(CommandServiceImpl, 'remoteCall').mockResolvedValue('transcript.transcript');
-    const callSpy = jest.spyOn(CommandServiceImpl, 'call').mockImplementationOnce(() => {
+    const remoteCallSpy = jest.spyOn(commandService, 'remoteCall').mockResolvedValue('transcript.transcript');
+    const callSpy = jest.spyOn(commandService, 'call').mockImplementationOnce(() => {
       throw new Error('Oh noes!');
     });
     const dispatchSpy = jest.spyOn(mockStore, 'dispatch');
@@ -162,8 +188,8 @@ describe('The emulator commands', () => {
   });
 
   it('should open a chat file', async () => {
-    const callSpy = jest.spyOn(CommandServiceImpl, 'call').mockResolvedValue(true);
-    const remoteCallSpy = jest.spyOn(CommandServiceImpl, 'remoteCall').mockResolvedValue(true);
+    const callSpy = jest.spyOn(commandService, 'call').mockResolvedValue(true);
+    const remoteCallSpy = jest.spyOn(commandService, 'remoteCall').mockResolvedValue(true);
 
     const openChatFileHandler = registry.getCommand(SharedConstants.Commands.Emulator.OpenChatFile);
     await openChatFileHandler('some/path.chat', true);

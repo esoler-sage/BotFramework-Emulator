@@ -32,6 +32,7 @@
 //
 import { newNotification, SharedConstants } from '@bfemulator/app-shared';
 import { combineReducers, createStore } from 'redux';
+import { CommandRegistry, CommandServiceImpl, CommandServiceInstance } from '@bfemulator/sdk-shared';
 
 import { clientAwareSettingsChanged } from '../data/action/clientAwareSettingsActions';
 import { beginAdd } from '../data/action/notificationActions';
@@ -40,7 +41,7 @@ import { chat } from '../data/reducer/chat';
 import { clientAwareSettings } from '../data/reducer/clientAwareSettingsReducer';
 import { editor } from '../data/reducer/editor';
 import { RootState } from '../data/store';
-import { CommandRegistry, CommandServiceImpl, CommandServiceInstance } from '@bfemulator/sdk-shared';
+
 import { EmulatorCommands } from './emulatorCommands';
 
 const mockEndpoint = {

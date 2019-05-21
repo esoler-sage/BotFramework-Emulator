@@ -45,6 +45,8 @@ import {
   SharedConstants,
   ValueTypesMask,
 } from '@bfemulator/app-shared';
+import { CommandServiceImpl, CommandServiceInstance } from '@bfemulator/sdk-shared';
+import { Conversation } from '@bfemulator/emulator-core';
 
 import { Document } from '../../../data/reducer/editor';
 import { debounce } from '../../../utils';
@@ -56,8 +58,6 @@ import PlaybackBar from './playbackBar/playbackBar';
 import * as styles from './emulator.scss';
 import { InspectorContainer } from './parts';
 import { ToolBar } from './toolbar/toolbar';
-import { CommandServiceImpl, CommandServiceInstance } from '@bfemulator/sdk-shared';
-import { Conversation } from '@bfemulator/emulator-core';
 
 const { encode } = base64Url;
 

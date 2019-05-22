@@ -34,6 +34,9 @@
 import { User } from '@bfemulator/sdk-shared';
 
 export default class Users {
+  constructor() {
+    this.users = {};
+  }
   public currentUserId: string = 'default-user';
   public users: { [userId: string]: User };
 

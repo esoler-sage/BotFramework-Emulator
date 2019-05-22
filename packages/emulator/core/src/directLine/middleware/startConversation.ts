@@ -53,7 +53,12 @@ export default function startConversation(botEmulator: BotEmulator) {
         return JSON.parse(optionsJson).conversationId;
       }) || uniqueId();
     const { users, conversations } = botEmulator.facilities;
-    const currentUser = users.usersById(users.currentUserId);
+    let currentUser = users.usersById(users.currentUserId);
+
+    if (!currentUser) {
+      users.users[users.currentUserId] = { id: users.currentUserId, name: 'Current user name' };
+      currentUser = users.usersById(users.currentUserId);
+    }
 
     let created = false;
     let conversation = conversations.conversationById(conversationId);
